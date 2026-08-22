@@ -12,13 +12,14 @@ React + NestJS + TypeORM + MySQL + JWT 기반의 강의용 웹 애플리케이�
 
 ## 포트 및 접속 구조
 
-| 구분 | 포트 | 바인딩 | 접속 예시 |
-|------|------|--------|-----------|
+| 구분       | 포트 | 바인딩    | 접속 예시              |
+| ---------- | ---- | --------- | ---------------------- |
 | 백엔드 API | 3000 | `0.0.0.0` | `http://<서버IP>:3000` |
 | 프론트 Web | 5173 | `0.0.0.0` | `http://<서버IP>:5173` |
-| MySQL | 3306 | 로컬 | EC2 내부에서만 접속 |
+| MySQL      | 3306 | 로컬      | EC2 내부에서만 접속    |
 
 프론트는 `/api` 경로로 백엔드를 호출합니다.
+
 - **개발:** Vite proxy가 `/api` → `localhost:3000` 으로 전달
 - **운영(EC2):** nginx가 `/api` → `127.0.0.1:3000` 으로 전달
 
@@ -42,12 +43,14 @@ npm run dev        # 백엔드 + 프론트 동시 실행
 ```
 
 개별 실행:
+
 ```bash
 npm run dev:backend   # API: 0.0.0.0:3000
 npm run dev:frontend  # Web: 0.0.0.0:5173
 ```
 
 외부(같은 네트워크/EC2)에서 접속:
+
 ```
 http://<서버IP>:5173    # 프론트
 http://<서버IP>:3000    # API 직접 호출
@@ -74,12 +77,16 @@ CORS_ORIGINS=http://localhost:5173,http://13.125.x.x:5173
 
 ### 실행이 안 될 때
 
-| 증상 | 원인 | 해결 |
-|------|------|------|
-| `Could not read package.json` | 루트가 아닌 폴더에서 실행 | `2026_study_lecture/`에서 실행 |
-| `Missing script: "dev"` | backend 폴더에서 실행 | 루트에서 `npm run dev` 또는 `npm run dev:backend` |
-| 백엔드가 계속 Retrying... | MySQL 비밀번호/DB 미설정 | `.env`의 `DB_PASSWORD`, DB 생성 확인 |
-| Vite `bundling dependencies...` | 첫 실행 시 의존성 번들링 | 1~2분 기다리면 http://localhost:5173 접속 가능 |
+| 증상                            | 원인                      | 해결                                              |
+| ------------------------------- | ------------------------- | ------------------------------------------------- |
+| `Could not read package.json`   | 루트가 아닌 폴더에서 실행 | `2026_study_lecture/`에서 실행                    |
+| `Missing script: "dev"`         | backend 폴더에서 실행     | 루트에서 `npm run dev` 또는 `npm run dev:backend` |
+| 백엔드가 계속 Retrying...       | MySQL 비밀번호/DB 미설정  | `.env`의 `DB_PASSWORD`, DB 생성 확인              |
+| Vite `bundling dependencies...` | 첫 실행 시 의존성 번들링  | 1~2분 기다리면 http://localhost:5173 접속 가능    |
+
+## Architecture
+
+![서비스 아키텍처]({https://github.com/user-attachments/assets/fb371889-4476-44bd-a333-de46f3c630d2})
 
 ### 1. 백엔드
 
@@ -108,13 +115,15 @@ npm run dev
 ## AWS EC2 배포 (운영)
 
 ### 1. EC2 보안 그룹
-| 포트 | 용도 |
-|------|------|
-| 22 | SSH |
-| 80 | nginx (운영 권장) |
+
+| 포트       | 용도                    |
+| ---------- | ----------------------- |
+| 22         | SSH                     |
+| 80         | nginx (운영 권장)       |
 | 5173, 3000 | 개발/테스트 시에만 개방 |
 
 ### 2. 서버 설정
+
 ```bash
 # 프로젝트 클론 후
 npm install
@@ -129,6 +138,7 @@ npm run build
 ```
 
 ### 3. nginx (예시: deploy/nginx.conf.example)
+
 ```bash
 sudo cp deploy/nginx.conf.example /etc/nginx/conf.d/lecture-eval.conf
 # root 경로를 실제 dist 위치로 수정
@@ -136,6 +146,7 @@ sudo nginx -t && sudo systemctl reload nginx
 ```
 
 ### 4. 백엔드 실행 (PM2 등)
+
 ```bash
 npm run build
 npm run start:prod   # 0.0.0.0:3000 에서 API 실행
@@ -152,11 +163,11 @@ npm install
 npm run build:zip
 ```
 
-| 명령어 | 결과 |
-|--------|------|
-| `npm run build:zip` | `deploy/backend-deploy.zip` + `deploy/frontend-deploy.zip` |
-| `npm run build:zip:backend` | 백엔드만 |
-| `npm run build:zip:frontend` | 프론트만 |
+| 명령어                       | 결과                                                       |
+| ---------------------------- | ---------------------------------------------------------- |
+| `npm run build:zip`          | `deploy/backend-deploy.zip` + `deploy/frontend-deploy.zip` |
+| `npm run build:zip:backend`  | 백엔드만                                                   |
+| `npm run build:zip:frontend` | 프론트만                                                   |
 
 상세 절차: [deploy/SFTP-DEPLOY.md](deploy/SFTP-DEPLOY.md)  
 (DB EC2 분리 방법도 동 문서에 정리)
@@ -166,40 +177,41 @@ npm run build:zip
 `.env`의 `ADMIN_EMAIL`, `ADMIN_PASSWORD`로 최초 1회 자동 생성됩니다.
 
 기본값:
+
 - email: admin@example.com
 - password: admin1234
 
 ## 주요 기능
 
-| 기능 | 설명 |
-|------|------|
-| 회원가입/로그인 | JWT Bearer 토큰 인증 |
-| 게시판 | 글 CRUD + 댓글 |
-| 마이페이지 | 프로필 수정, 내 글 목록 |
-| 관리자 | 대시보드, 회원/게시글 관리 |
+| 기능            | 설명                       |
+| --------------- | -------------------------- |
+| 회원가입/로그인 | JWT Bearer 토큰 인증       |
+| 게시판          | 글 CRUD + 댓글             |
+| 마이페이지      | 프로필 수정, 내 글 목록    |
+| 관리자          | 대시보드, 회원/게시글 관리 |
 
 ## API 요약
 
-| Method | Path | 설명 | 인증 |
-|--------|------|------|------|
-| POST | /auth/register | 회원가입 | X |
-| POST | /auth/login | 로그인 | X |
-| GET | /users/me | 내 정보 | O |
-| PATCH | /users/me | 프로필 수정 | O |
-| GET | /users/me/posts | 내 글 목록 | O |
-| GET | /posts | 게시글 목록 | X |
-| GET | /posts/:id | 게시글 상세 | X |
-| POST | /posts | 글 작성 | O |
-| PATCH | /posts/:id | 글 수정 | O |
-| DELETE | /posts/:id | 글 삭제 | O |
-| POST | /posts/:postId/comments | 댓글 작성 | O |
-| DELETE | /comments/:id | 댓글 삭제 | O |
-| GET | /admin/dashboard | 통계 | Admin |
-| GET | /admin/users | 회원 목록 | Admin |
-| PATCH | /admin/users/:id/role | 권한 변경 | Admin |
-| DELETE | /admin/users/:id | 회원 삭제 | Admin |
-| GET | /admin/posts | 게시글 목록 | Admin |
-| DELETE | /admin/posts/:id | 게시글 삭제 | Admin |
-| GET | /health | 서버 상태 | X |
-| GET | /db-check | DB 연결 확인 | X |
-| GET | /server-info | 서버 정보 | X |
+| Method | Path                    | 설명         | 인증  |
+| ------ | ----------------------- | ------------ | ----- |
+| POST   | /auth/register          | 회원가입     | X     |
+| POST   | /auth/login             | 로그인       | X     |
+| GET    | /users/me               | 내 정보      | O     |
+| PATCH  | /users/me               | 프로필 수정  | O     |
+| GET    | /users/me/posts         | 내 글 목록   | O     |
+| GET    | /posts                  | 게시글 목록  | X     |
+| GET    | /posts/:id              | 게시글 상세  | X     |
+| POST   | /posts                  | 글 작성      | O     |
+| PATCH  | /posts/:id              | 글 수정      | O     |
+| DELETE | /posts/:id              | 글 삭제      | O     |
+| POST   | /posts/:postId/comments | 댓글 작성    | O     |
+| DELETE | /comments/:id           | 댓글 삭제    | O     |
+| GET    | /admin/dashboard        | 통계         | Admin |
+| GET    | /admin/users            | 회원 목록    | Admin |
+| PATCH  | /admin/users/:id/role   | 권한 변경    | Admin |
+| DELETE | /admin/users/:id        | 회원 삭제    | Admin |
+| GET    | /admin/posts            | 게시글 목록  | Admin |
+| DELETE | /admin/posts/:id        | 게시글 삭제  | Admin |
+| GET    | /health                 | 서버 상태    | X     |
+| GET    | /db-check               | DB 연결 확인 | X     |
+| GET    | /server-info            | 서버 정보    | X     |
