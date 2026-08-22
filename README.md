@@ -86,7 +86,7 @@ CORS_ORIGINS=http://localhost:5173,http://13.125.x.x:5173
 
 ## Architecture
 
-![서비스 아키텍처]({https://github.com/user-attachments/assets/fb371889-4476-44bd-a333-de46f3c630d2})
+![서비스 아키텍처](https://github.com/user-attachments/assets/fb371889-4476-44bd-a333-de46f3c630d2)
 
 ### 1. 백엔드
 
